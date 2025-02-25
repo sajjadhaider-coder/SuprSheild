@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="app" />
+        <module name="SoftwareLicensKeyModule" />
+        <module name="UserModule" />
+        <module name="Authentication" />
+        <module name="CommonModule" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="ProxyModule" target="17" />
+      <module name="SoftwareLicenseKeyModule" target="17" />
+      <module name="User" target="17" />
+      <module name="UserService" target="17" />
+    </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="Authentication" options="-parameters" />
+      <module name="CommonModule" options="-parameters" />
+      <module name="ProxyModule" options="-parameters" />
+      <module name="SoftwareLicensKeyModule" options="-parameters" />
+      <module name="SoftwareLicenseKeyModule" options="-parameters" />
+      <module name="SuperSheild" options="" />
+      <module name="User" options="-parameters" />
+      <module name="UserModule" options="-parameters" />
+      <module name="UserService" options="-parameters" />
+      <module name="app" options="-parameters" />
+    </option>
+  </component>
+</project>
