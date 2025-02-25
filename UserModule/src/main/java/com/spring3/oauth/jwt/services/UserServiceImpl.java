@@ -124,18 +124,14 @@ public class UserServiceImpl implements UserService {
     public UserInfo updateAgentInfo(UserInfo user) {
         UserInfo savedUser = null;
 
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-        String rawPassword = user.getPassword();
-        String encodedPassword = encoder.encode(rawPassword);
-
         user.setUsername(user.getUsername());
-        user.setPassword(encodedPassword);
-        user.setStatus("Active");
-        Optional<UserInfo> existingUser = userRepository.findById((long) user.getId());
+       // user.setPassword(encodedPassword);
+         Optional<UserInfo> existingUser = userRepository.findById((long) user.getId());
         if (existingUser != null) {
             //existingUser.get().setCreatedBy(String.valueOf(existingUser.get().getUserId()));
             //existingUser.get().setUserId(user.getId());
-            existingUser.get().setPassword(user.getPassword());
+            //existingUser.get().setPassword(user.getPassword());
+            existingUser.get().setStatus(user.getStatus());
             existingUser.get().setUsername(user.getUsername());
            // existingUser.get().setVerificationCode(user.getVerificationCode());
             existingUser.get().setUpdatedAt(LocalDateTime.now());

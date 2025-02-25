@@ -74,4 +74,11 @@ public class UserInfo {
 /*
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
     private Set<UserRole> licenseKey = new HashSet<>();*/
+
+    public UserInfo(long id, String username, String status, String deviceType) {
+        this.id = id;
+        this.username = username;
+        this.status = status;
+        this.deviceType = deviceType;
+    }
 }

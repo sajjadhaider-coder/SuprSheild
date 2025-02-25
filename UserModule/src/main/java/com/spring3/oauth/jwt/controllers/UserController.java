@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "http://localhost:8841")
 @RestController
 @RequestMapping("/api/v1/user")
 public class UserController {
@@ -85,12 +85,12 @@ public class UserController {
 
 
     @PostMapping("/updateUserProfile")
-    public  ResponseEntity<ApiResponse> updateAgentProfile(@RequestBody UserInfo userInfo) {
+    public  ResponseEntity<ApiResponse> updateAgentProfile(@RequestBody UpdateUserRequest uur) {
         int statusCode = 0;
         ApiResponse response = null;
-
+        UserInfo userInfo = null;
         String msg = null;
-        if (userInfo.getId() <= 0) {
+        if (uur.getId() <= 0) {
             msg = "User ID is invalid";
             statusCode = HttpStatus.UNAUTHORIZED.value();
             response = new ApiResponse<>(HttpStatus.UNAUTHORIZED.value(), "FAILURE: "+msg, null);
@@ -98,6 +98,7 @@ public class UserController {
         }
 
         try {
+            userInfo = new UserInfo(uur.getId(), uur.getUsername(), uur.getStatus(), uur.getDeviceType());
             statusCode = HttpStatus.OK.value();
             UserInfo agentProfile = userService.updateAgentInfo(userInfo);
             response = new ApiResponse<>(HttpStatus.OK.value(), "SUCCESS", agentProfile);

@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:8841")
 @RequestMapping("/api/v1/licensekey")
 public class LicenseKeyController {
     @Autowired
