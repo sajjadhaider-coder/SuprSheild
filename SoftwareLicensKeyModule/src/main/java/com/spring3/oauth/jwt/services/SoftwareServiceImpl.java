@@ -24,25 +24,33 @@ public class SoftwareServiceImpl implements SoftwareService {
 
     @Override
     public Boolean deleteSoftware(Softwares softwares) {
-        Boolean isDeleted = false;
         try {
-            softwareRepository.delete(softwares);
-            isDeleted = true;
-        } catch (Exception e){
-            isDeleted = false;
+            Boolean isDeleted = false;
+            try {
+                softwareRepository.delete(softwares);
+                isDeleted = true;
+            } catch (Exception e) {
+                isDeleted = false;
+            }
+            return isDeleted;
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
         }
-        return  isDeleted;
     }
 
     @Override
     public Page<Softwares> getAllSoftwares(Pageable pageable) {
-        Page<Softwares> softwaresList = null;
         try {
-            softwaresList = softwareRepository.findAll(pageable);
-        } catch (Exception e){
+            Page<Softwares> softwaresList = null;
+            try {
+                softwaresList = softwareRepository.findAll(pageable);
+            } catch (Exception e) {
 
+            }
+            return softwaresList;
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
         }
-        return softwaresList;
     }
 
 
@@ -53,6 +61,10 @@ public class SoftwareServiceImpl implements SoftwareService {
 
     @Override
     public Optional<Softwares> getSoftwareDetailsById(Long softwareId) {
-        return softwareRepository.findById(softwareId);
+        try {
+            return softwareRepository.findById(softwareId);
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
     }
 }

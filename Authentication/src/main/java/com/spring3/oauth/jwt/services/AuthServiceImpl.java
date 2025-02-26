@@ -35,72 +35,86 @@ public class AuthServiceImpl implements AuthService {
     ModelMapper modelMapper = new ModelMapper();
     public static final String _255 = "(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)";
     public static final Pattern pattern = Pattern.compile("^(?:" + _255 + "\\.){3}" + _255 + "$");
+
     @Override
     public UserInfo saveUser(UserInfo user) {
-        if(user.getUsername()== null){
-            throw new RuntimeException("Parameter account number is not found in request..!!");
-        } else if(user.getPassword() == null){
-            throw new RuntimeException("Parameter password is not found in request..!!");
-        }
-        Optional<UserInfo> persitedUser = Optional.of(new UserInfo());
-        UserInfo savedUser = null;
-
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-        String rawPassword = user.getPassword();
-        String encodedPassword = encoder.encode(rawPassword);
-
-       // UserInfo user = modelMapper.map(userInfoRequest, UserInfo.class);
-        user.setUsername(user.getUsername());
-        user.setPassword(encodedPassword);
-        user.setStatus("Active");
-        if(user.getId() > 0){
-            UserInfo oldUser = userRepository.findFirstById(user.getId());
-            oldUser.setCreatedBy(String.valueOf(oldUser.getId()));
-            if(oldUser != null){
-                oldUser.setId(user.getId());
-                oldUser.setPassword(user.getPassword());
-                oldUser.setUsername(user.getUsername());
-              //  oldUser.setVerificationCode(user.getVerificationCode());
-                oldUser.setUpdatedAt(LocalDateTime.now());
-                oldUser.setUpdatedBy(String.valueOf(oldUser.getId()));
-                oldUser.setRoles(user.getRoles());
-
-                savedUser = userRepository.save(oldUser);
-                persitedUser = userRepository.findById(savedUser.getId());
-            } else {
-                throw new RuntimeException("Can't find record with identifier: " + persitedUser.get().getId());
+        try {
+            if (user.getUsername() == null) {
+                throw new RuntimeException("Parameter account number is not found in request..!!");
+            } else if (user.getPassword() == null) {
+                throw new RuntimeException("Parameter password is not found in request..!!");
             }
-        } else {
+            Optional<UserInfo> persitedUser = Optional.of(new UserInfo());
+            UserInfo savedUser = null;
+
+            BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+            String rawPassword = user.getPassword();
+            String encodedPassword = encoder.encode(rawPassword);
+
+            // UserInfo user = modelMapper.map(userInfoRequest, UserInfo.class);
+            user.setUsername(user.getUsername());
+            user.setPassword(encodedPassword);
+            user.setStatus("Active");
+            if (user.getId() > 0) {
+                UserInfo oldUser = userRepository.findFirstById(user.getId());
+                oldUser.setCreatedBy(String.valueOf(oldUser.getId()));
+                if (oldUser != null) {
+                    oldUser.setId(user.getId());
+                    oldUser.setPassword(user.getPassword());
+                    oldUser.setUsername(user.getUsername());
+                    //  oldUser.setVerificationCode(user.getVerificationCode());
+                    oldUser.setUpdatedAt(LocalDateTime.now());
+                    oldUser.setUpdatedBy(String.valueOf(oldUser.getId()));
+                    oldUser.setRoles(user.getRoles());
+
+                    savedUser = userRepository.save(oldUser);
+                    persitedUser = userRepository.findById(savedUser.getId());
+                } else {
+                    throw new RuntimeException("Can't find record with identifier: " + persitedUser.get().getId());
+                }
+            } else {
 //            user.setCreatedBy(currentUser);
-            user.setCreatedAt(LocalDateTime.now());
-            persitedUser = Optional.of(userRepository.save(user));
+                user.setCreatedAt(LocalDateTime.now());
+                persitedUser = Optional.of(userRepository.save(user));
+            }
+            return persitedUser.get();
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
         }
-         return persitedUser.get();
     }
 
     @Override
     public UserInfo getUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserDetails userDetail = (UserDetails) authentication.getPrincipal();
-        String usernameFromAccessToken = userDetail.getUsername();
-        UserInfo user = userRepository.findByUsername(usernameFromAccessToken);
-       // UserInfoResponse userResponse = modelMapper.map(user, UserInfoResponse.class);
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            UserDetails userDetail = (UserDetails) authentication.getPrincipal();
+            String usernameFromAccessToken = userDetail.getUsername();
+            UserInfo user = userRepository.findByUsername(usernameFromAccessToken);
+            // UserInfoResponse userResponse = modelMapper.map(user, UserInfoResponse.class);
 
-        if (user.getUsername() != null )
-            user.setUsername(user.getUsername());
+            if (user.getUsername() != null)
+                user.setUsername(user.getUsername());
 
-        return user;
+            return user;
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
     @Override
     public List<UserInfo> getAllUser() {
-        List<UserInfo> users = (List<UserInfo>) userRepository.findAll();
-        Type setOfDTOsType = new TypeToken<List<UserInfoResponse>>(){}.getType();
-        List<UserInfoResponse> userResponses = modelMapper.map(users, setOfDTOsType);
-        for (int i = 0; i < users.size(); i++) {
-            userResponses.get(i).setUsername(users.get(i).getUsername());
+        try {
+            List<UserInfo> users = (List<UserInfo>) userRepository.findAll();
+            Type setOfDTOsType = new TypeToken<List<UserInfoResponse>>() {
+            }.getType();
+            List<UserInfoResponse> userResponses = modelMapper.map(users, setOfDTOsType);
+            for (int i = 0; i < users.size(); i++) {
+                userResponses.get(i).setUsername(users.get(i).getUsername());
+            }
+            return users;
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
         }
-        return users;
     }
 
     @Override
@@ -125,25 +139,28 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public UserInfo updateUser(UserInfo userInfo, HttpServletRequest httpServletRequest) {
-
-        Optional<UserInfo> checkUser = null;
-        UserInfo userResponse = null;
-        if (userInfo.getId() > 0) {
-            checkUser = userRepository.findById(userInfo.getId());
+        try {
+            Optional<UserInfo> checkUser = null;
+            UserInfo userResponse = null;
+            if (userInfo.getId() > 0) {
+                checkUser = userRepository.findById(userInfo.getId());
+            }
+            if (checkUser != null) {
+                checkUser.get().setUpdatedAt(LocalDateTime.now());
+                checkUser.get().setUpdatedBy(userInfo.getUpdatedBy());
+                //  checkUser.setUserId(userInfo.getId());
+                checkUser.get().setIpAddress(userInfo.getIpAddress());
+                checkUser.get().setUserLocation(this.getIPLocation(userInfo.getUserLocation()));
+                checkUser.get().setUpdatedBy(String.valueOf(userInfo.getId()));
+                checkUser.get().setDeviceType(userInfo.getDeviceType());
+                checkUser = Optional.of(userRepository.save(checkUser.get()));
+            } else {
+                userInfo = userRepository.save(userInfo);
+            }
+            return userResponse;
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
         }
-        if (checkUser != null) {
-            checkUser.get().setUpdatedAt(LocalDateTime.now());
-            checkUser.get().setUpdatedBy(userInfo.getUpdatedBy());
-            //  checkUser.setUserId(userInfo.getId());
-            checkUser.get().setIpAddress(userInfo.getIpAddress());
-            checkUser.get().setUserLocation(this.getIPLocation(userInfo.getUserLocation()));
-            checkUser.get().setUpdatedBy(String.valueOf(userInfo.getId()));
-            checkUser.get().setDeviceType(userInfo.getDeviceType());
-            checkUser = Optional.of(userRepository.save(checkUser.get()));
-        } else {
-            userInfo = userRepository.save(userInfo);
-        }
-        return userResponse;
     }
 
     @Override
@@ -157,6 +174,7 @@ public class AuthServiceImpl implements AuthService {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         }
         return isDeleted;
     }
@@ -198,6 +216,7 @@ public class AuthServiceImpl implements AuthService {
                 apiLocation = json.get("city") + ", " + json.get("country");
         } catch (Exception e){
             e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         }
 
         return apiLocation;

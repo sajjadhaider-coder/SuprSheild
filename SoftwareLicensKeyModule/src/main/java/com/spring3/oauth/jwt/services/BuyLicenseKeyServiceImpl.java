@@ -20,36 +20,46 @@ public class BuyLicenseKeyServiceImpl implements BuyLicenseKeyService {
 
     @Override
     public Page<BuyLicenseKey> getAllBuyLicenseKey(Pageable pageable) {
-
-        return buyLicenseKeyRepo.findAll(pageable);
+        try {
+            return buyLicenseKeyRepo.findAll(pageable);
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
     @Override
     public Page<BuyLicenseKey> getByUserId(Long userId, Pageable pageable) {
-
-        return buyLicenseKeyRepo.findByUserId(userId, pageable);
+        try {
+            return buyLicenseKeyRepo.findByUserId(userId, pageable);
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
     @Override
     public void buyLicenseKeyExpiryValidate() {
-        List<BuyLicenseKey> buyLicenseKey = buyLicenseKeyRepo.findAll();
-        if (!buyLicenseKey.isEmpty()) {
-            buyLicenseKey.forEach(buyLicense -> {
-                LocalDateTime expiryDate = buyLicense.getExpirydate();
+        try {
+            List<BuyLicenseKey> buyLicenseKey = buyLicenseKeyRepo.findAll();
+            if (!buyLicenseKey.isEmpty()) {
+                buyLicenseKey.forEach(buyLicense -> {
+                    LocalDateTime expiryDate = buyLicense.getExpirydate();
 
-                // Get today's date
-                LocalDateTime today = LocalDateTime.now();
+                    // Get today's date
+                    LocalDateTime today = LocalDateTime.now();
 
-                // Check if the expiry date is within 5 days
-                long daysLeft = ChronoUnit.DAYS.between(today, expiryDate);
+                    // Check if the expiry date is within 5 days
+                    long daysLeft = ChronoUnit.DAYS.between(today, expiryDate);
 
-                // If the expiry date is within 5 days,
-                if (daysLeft == 5) {
-                    // "Warning: Your license will expire in 5 days
-                } else if (daysLeft <= 0) {
+                    // If the expiry date is within 5 days,
+                    if (daysLeft == 5) {
+                        // "Warning: Your license will expire in 5 days
+                    } else if (daysLeft <= 0) {
 //                    Your license has expired.
-                }
-            });
+                    }
+                });
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
         }
     }
 }

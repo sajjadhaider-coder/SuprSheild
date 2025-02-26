@@ -30,18 +30,23 @@ public class RoleServiceImpl implements RoleService {
         Boolean isDeleted = false;
         try {
             Optional<UserRole> userRole = roleRespository.findById(roleId);
-            if(!userRole.isEmpty()) {
+            if (!userRole.isEmpty()) {
                 roleRespository.delete(userRole.get());
                 isDeleted = true;
             }
         } catch (Exception e) {
             e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         }
         return isDeleted;
     }
 
     @Override
     public Optional<UserRole> getRoleById(Long id) {
-        return roleRespository.findById(id);
+        try {
+            return roleRespository.findById(id);
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
     }
 }

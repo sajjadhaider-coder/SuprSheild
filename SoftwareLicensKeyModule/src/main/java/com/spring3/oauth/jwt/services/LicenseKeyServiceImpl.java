@@ -21,45 +21,56 @@ import java.util.Set;
 @Service
 public class LicenseKeyServiceImpl implements LicenseKeyService {
 
-@Autowired
-LicenseKeyRepository licenseKeyRepository;
+    @Autowired
+    LicenseKeyRepository licenseKeyRepository;
 
-@Autowired
-SoftwareRepository softwareRepository;
+    @Autowired
+    SoftwareRepository softwareRepository;
 
-@Autowired
+    @Autowired
     BuyLicenseKeyRepository buyLicenseKeyRepository;
 
-@Autowired
-UserRepository userRepository;
+    @Autowired
+    UserRepository userRepository;
 
 
     @Override
     public LicenseKey addLicense(LicenseKey licenseKey) {
-        return licenseKeyRepository.save(licenseKey);
+        try {
+            return licenseKeyRepository.save(licenseKey);
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
     @Override
     public Boolean deleteLicense(LicenseKey licenseKey) {
-
-        Boolean isDeleted = false;
         try {
-            licenseKeyRepository.delete(licenseKey);
-            isDeleted = true;
-        } catch (Exception e){
-            isDeleted = false;
+            Boolean isDeleted = false;
+            try {
+                licenseKeyRepository.delete(licenseKey);
+                isDeleted = true;
+            } catch (Exception e) {
+                isDeleted = false;
+            }
+            return isDeleted;
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
         }
-        return  isDeleted;
     }
 
     @Override
     public Page<LicenseKey> getAllLicense(Pageable pageable) {
-        Page<LicenseKey> licenseKeys = null;
         try {
-            licenseKeys = licenseKeyRepository.findAll(pageable);
-        } catch (Exception e){
+            Page<LicenseKey> licenseKeys = null;
+            try {
+                licenseKeys = licenseKeyRepository.findAll(pageable);
+            } catch (Exception e) {
+            }
+            return licenseKeys;
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
         }
-        return licenseKeys;
     }
 
     @Override
@@ -69,7 +80,11 @@ UserRepository userRepository;
 
     @Override
     public Optional<LicenseKey> getLicenseDetailsById(Long licenseKeyId) {
-        return licenseKeyRepository.findById(licenseKeyId);
+        try {
+            return licenseKeyRepository.findById(licenseKeyId);
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
    /* public UserInfo buyKey(List<String> keyIds, String userId) {
@@ -173,13 +188,18 @@ UserRepository userRepository;
             softwares = softwareRepository.save(softwares);
         } catch (Exception e) {
             e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         }
         return softwares;
     }
 
     @Override
     public BuyLicenseKey buyKey(BuyLicenseKey buyLicenseKey) {
-        buyLicenseKey = buyLicenseKeyRepository.save(buyLicenseKey);
-        return buyLicenseKey;
+        try {
+            buyLicenseKey = buyLicenseKeyRepository.save(buyLicenseKey);
+            return buyLicenseKey;
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
     }
 }

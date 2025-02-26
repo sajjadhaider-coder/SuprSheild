@@ -26,25 +26,25 @@ public class RefreshTokenService {
     @Autowired
     UserRepository userRepository;
 
-    public RefreshToken createRefreshToken(String username){
+    public RefreshToken createRefreshToken(String username) {
+        try {
+            UserInfo userInfo = userRepository.findByUsername(username);
+            Optional<RefreshToken> existingToken = refreshTokenRepository.findByUserInfo(userInfo);
 
-        UserInfo userInfo = userRepository.findByUsername(username);
-        Optional<RefreshToken> existingToken = refreshTokenRepository.findByUserInfo(userInfo);
-
-        if (existingToken.isPresent()) {
-            // If an existing token is found, update its token and expiry date
-            existingToken.get().setToken(UUID.randomUUID().toString());
-            existingToken.get().setExpiryDate(Instant.now().plusMillis(900000000));
-            return refreshTokenRepository.save(existingToken.get());
-        } else {
-            // If no existing token is found, create a new one
-            RefreshToken newRefreshToken = RefreshToken.builder()
-                    .userInfo(userInfo)
-                    .token(UUID.randomUUID().toString())
-                    .expiryDate(Instant.now().plusMillis(900000000))
-                    .build();
-            return refreshTokenRepository.save(newRefreshToken);
-        }
+            if (existingToken.isPresent()) {
+                // If an existing token is found, update its token and expiry date
+                existingToken.get().setToken(UUID.randomUUID().toString());
+                existingToken.get().setExpiryDate(Instant.now().plusMillis(900000000));
+                return refreshTokenRepository.save(existingToken.get());
+            } else {
+                // If no existing token is found, create a new one
+                RefreshToken newRefreshToken = RefreshToken.builder()
+                        .userInfo(userInfo)
+                        .token(UUID.randomUUID().toString())
+                        .expiryDate(Instant.now().plusMillis(900000000))
+                        .build();
+                return refreshTokenRepository.save(newRefreshToken);
+            }
         /*RefreshToken refreshToken = RefreshToken.builder()
                 .userInfo(userRepository.findByUsername(username))
                 .token(UUID.randomUUID().toString())
@@ -52,6 +52,9 @@ public class RefreshTokenService {
                 .build();
         return refreshTokenRepository.save(refreshToken);
         */
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
     public Optional<RefreshToken> findByToken(String token){

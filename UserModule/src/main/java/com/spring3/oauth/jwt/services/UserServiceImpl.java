@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.data.domain.Pageable;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -52,10 +53,10 @@ public class UserServiceImpl implements UserService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public UserInfo saveUser(SignupRequest user, HttpServletRequest httpServletRequest) {
-        {
-            if(user.getUsername()== null){
+        try {
+            if (user.getUsername() == null) {
                 throw new RuntimeException("Parameter account number is not found in request..!!");
-            } else if(user.getPassword() == null){
+            } else if (user.getPassword() == null) {
                 throw new RuntimeException("Parameter password is not found in request..!!");
             }
             Optional<UserInfo> persitedUser = Optional.of(new UserInfo());
@@ -81,97 +82,116 @@ public class UserServiceImpl implements UserService {
                 persitedUser = Optional.of(userRepository.save(uInfo));
             } catch (Exception e) {
                 e.printStackTrace();
+                throw new RuntimeException(e.getMessage());
             }
             return persitedUser.get();
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
         }
     }
 
     public String addAgentDatainProxy(UserInfo user, String url) {
         HttpHeaders headers = new HttpHeaders();
-       headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<UserInfo> request = new HttpEntity<>(user, headers);
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
         return response.getBody();
     }
-/*
-    @Override
-    public SubAgentListResponse getSubAgentList(String userId) {
-        SubAgentListResponse subAgentListResponse = null;
-        List<UserInfo> userInfoList = agentRepository.findSubAgentsByAgentId(userId);
-        Optional<UserInfo> userInfo = agentRepository.findById(Long.valueOf(userId));
-        if (userInfo != null) {
-            subAgentListResponse = new SubAgentListResponse();
-            subAgentListResponse.setUserInfo(userInfo.get());
-            subAgentListResponse.setSubAgentList(userInfoList);
-        }
-        return subAgentListResponse;
-    } */
+
+    /*
+        @Override
+        public SubAgentListResponse getSubAgentList(String userId) {
+            SubAgentListResponse subAgentListResponse = null;
+            List<UserInfo> userInfoList = agentRepository.findSubAgentsByAgentId(userId);
+            Optional<UserInfo> userInfo = agentRepository.findById(Long.valueOf(userId));
+            if (userInfo != null) {
+                subAgentListResponse = new SubAgentListResponse();
+                subAgentListResponse.setUserInfo(userInfo.get());
+                subAgentListResponse.setSubAgentList(userInfoList);
+            }
+            return subAgentListResponse;
+        } */
     @Override
     public SubAgentListResponse getPaginatedSubAgentList(String userId, Pageable pageable) {
-        SubAgentListResponse subAgentListResponse = null;
-        Page<UserInfo> userInfoList = userRepository.findPaginatedSubAgentsByParentId(userId, pageable);
-        Optional<UserInfo> userInfo = agentRepository.findById(Long.valueOf(userId));
-        if (userInfo != null) {
-            subAgentListResponse = new SubAgentListResponse();
-            subAgentListResponse.setUserInfo(userInfo.get());
-            subAgentListResponse.setSubAgentList(userInfoList);
+        try {
+            SubAgentListResponse subAgentListResponse = null;
+            Page<UserInfo> userInfoList = userRepository.findPaginatedSubAgentsByParentId(userId, pageable);
+            Optional<UserInfo> userInfo = agentRepository.findById(Long.valueOf(userId));
+            if (userInfo != null) {
+                subAgentListResponse = new SubAgentListResponse();
+                subAgentListResponse.setUserInfo(userInfo.get());
+                subAgentListResponse.setSubAgentList(userInfoList);
+            }
+            return subAgentListResponse;
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
         }
-        return subAgentListResponse;
     }
 
 
     @Override
     public UserInfo updateAgentInfo(UserInfo user) {
-        UserInfo savedUser = null;
+        try {
+            UserInfo savedUser = null;
 
-        user.setUsername(user.getUsername());
-       // user.setPassword(encodedPassword);
-         Optional<UserInfo> existingUser = userRepository.findById((long) user.getId());
-        if (existingUser != null) {
-            //existingUser.get().setCreatedBy(String.valueOf(existingUser.get().getUserId()));
-            //existingUser.get().setUserId(user.getId());
-            //existingUser.get().setPassword(user.getPassword());
-            existingUser.get().setStatus(user.getStatus());
-            existingUser.get().setUsername(user.getUsername());
-           // existingUser.get().setVerificationCode(user.getVerificationCode());
-            existingUser.get().setUpdatedAt(LocalDateTime.now());
-            existingUser.get().setDeviceType(user.getDeviceType());
-            existingUser.get().setUpdatedBy(String.valueOf(0));
-            savedUser = userRepository.save(existingUser.get());
+            user.setUsername(user.getUsername());
+            // user.setPassword(encodedPassword);
+            Optional<UserInfo> existingUser = userRepository.findById((long) user.getId());
+            if (existingUser != null) {
+                //existingUser.get().setCreatedBy(String.valueOf(existingUser.get().getUserId()));
+                //existingUser.get().setUserId(user.getId());
+                //existingUser.get().setPassword(user.getPassword());
+                existingUser.get().setStatus(user.getStatus());
+                existingUser.get().setUsername(user.getUsername());
+                // existingUser.get().setVerificationCode(user.getVerificationCode());
+                existingUser.get().setUpdatedAt(LocalDateTime.now());
+                existingUser.get().setDeviceType(user.getDeviceType());
+                existingUser.get().setUpdatedBy(String.valueOf(0));
+                savedUser = userRepository.save(existingUser.get());
+            }
+            //  updateUserDatainAuth(savedUser);
+            //addAgentDatainProxy(savedUser, proxyupdateAgentApiUrl);
+            return savedUser;
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
         }
-      //  updateUserDatainAuth(savedUser);
-        //addAgentDatainProxy(savedUser, proxyupdateAgentApiUrl);
-        return savedUser;
     }
+
     @Override
     public UserInfo getUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserDetails userDetail = (UserDetails) authentication.getPrincipal();
-        String usernameFromAccessToken = userDetail.getUsername();
-        UserInfo user = userRepository.findByUsername(usernameFromAccessToken);
-       // UserInfoResponse userResponse = modelMapper.map(user, UserInfoResponse.class);
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            UserDetails userDetail = (UserDetails) authentication.getPrincipal();
+            String usernameFromAccessToken = userDetail.getUsername();
+            UserInfo user = userRepository.findByUsername(usernameFromAccessToken);
+            // UserInfoResponse userResponse = modelMapper.map(user, UserInfoResponse.class);
 
-        if (user.getUsername() != null )
-            user.setUsername(user.getUsername());
+            if (user.getUsername() != null)
+                user.setUsername(user.getUsername());
 
-        return user;
+            return user;
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
     @Override
     public Page<UserInfo> getAllUser(Pageable pageable) {
-        Page<UserInfo> users = userRepository.findAll(pageable);
-        return users;
+        try {
+            Page<UserInfo> users = userRepository.findAll(pageable);
+            return users;
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
     @Override
-    public String returnClientIp(HttpServletRequest request)
-    {
+    public String returnClientIp(HttpServletRequest request) {
         boolean found = false;
         String IPAddress;
         if ((IPAddress = request.getHeader("x-forwarded-for")) != null) {
             StrTokenizer tokenizer = new StrTokenizer(IPAddress, ",");
-            while (tokenizer.hasNext())
-            {
+            while (tokenizer.hasNext()) {
                 IPAddress = tokenizer.nextToken().trim();
                 if (isIPv4Valid(IPAddress) && !isIPv4Private(IPAddress)) {
                     found = true;
@@ -179,7 +199,9 @@ public class UserServiceImpl implements UserService {
                 }
             }
         }
-        if (!found) {IPAddress = request.getRemoteAddr();}
+        if (!found) {
+            IPAddress = request.getRemoteAddr();
+        }
         return IPAddress;
     }
 
@@ -231,8 +253,8 @@ public class UserServiceImpl implements UserService {
             return userRepository.save(userInfo);
         } catch (Exception e) {
             e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         }
-        return userInfo;
     }
 
     @Override
@@ -246,7 +268,7 @@ public class UserServiceImpl implements UserService {
             if (userInfoOpt.isEmpty()) {
                 throw new RuntimeException("User not found with ID: " + userId);
             }
-             userInfo = userInfoOpt.get();
+            userInfo = userInfoOpt.get();
 
             // Get existing roles
             Set<UserRole> existingRoles = userInfo.getRoles();
@@ -265,8 +287,8 @@ public class UserServiceImpl implements UserService {
             return userRepository.save(userInfo);
         } catch (Exception e) {
             e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         }
-        return userInfo;
     }
 
     @Override
@@ -276,7 +298,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserInfo> getPaginatedUsers(int limit, int offset) {
-        return userRepository.findWithPagination(limit, offset);
+        try {
+            return userRepository.findWithPagination(limit, offset);
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
 
@@ -285,14 +311,15 @@ public class UserServiceImpl implements UserService {
         Boolean isDeleted = false;
         try {
             Optional<UserInfo> userInfo = userRepository.findById(userId);
-            if(!userInfo.isEmpty()) {
+            if (!userInfo.isEmpty()) {
                 userRepository.delete(userInfo.get());
                 findAndDeleteUserInAgenService(userInfo.get());
-              //  findandDeleteUserInAuth(userInfo.get());
-                 isDeleted = true;
+                //  findandDeleteUserInAuth(userInfo.get());
+                isDeleted = true;
             }
         } catch (Exception e) {
             e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         }
         return isDeleted;
     }
@@ -306,10 +333,14 @@ public class UserServiceImpl implements UserService {
     }*/
 
     private String findAndDeleteUserInAgenService(UserInfo user) {
-        Map<String, String> uriVariables = new HashMap<>();
-       // uriVariables.put("userId", String.valueOf(user.getUserId()));
-        ResponseEntity<String> response = restTemplate.exchange(findAndDeleteUserInAgentServiceURL, HttpMethod.POST, null, String.class, uriVariables);
-        return response.getBody();
+        try {
+            Map<String, String> uriVariables = new HashMap<>();
+            // uriVariables.put("userId", String.valueOf(user.getUserId()));
+            ResponseEntity<String> response = restTemplate.exchange(findAndDeleteUserInAgentServiceURL, HttpMethod.POST, null, String.class, uriVariables);
+            return response.getBody();
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
     public String getIPLocation(String ip) {
@@ -322,7 +353,7 @@ public class UserServiceImpl implements UserService {
             HttpURLConnection con = (HttpURLConnection) obj.openConnection();
             int responseCode = con.getResponseCode();
 
-            BufferedReader in = new BufferedReader( new InputStreamReader(con.getInputStream()));
+            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
             StringBuffer response = new StringBuffer();
 
             while ((inputLine = in.readLine()) != null) {
@@ -331,25 +362,29 @@ public class UserServiceImpl implements UserService {
 
             in.close();
             JSONObject json = new JSONObject(response.toString());
-            if ( json == null || json.get("status").equals("fail"))
+            if (json == null || json.get("status").equals("fail"))
                 apiLocation = "NA";
             else
                 apiLocation = json.get("city") + ", " + json.get("country");
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         }
 
         return apiLocation;
     }
+
     private static boolean isIPv4Valid(String ip) {
         return pattern.matcher(ip).matches();
     }
+
     public static boolean isIPv4Private(String ip) {
         long longIp = ipV4ToLong(ip);
         return (longIp >= ipV4ToLong("10.0.0.0") && longIp <= ipV4ToLong("10.255.255.255")) ||
                 (longIp >= ipV4ToLong("172.16.0.0") && longIp <= ipV4ToLong("172.31.255.255")) ||
                 longIp >= ipV4ToLong("192.168.0.0") && longIp <= ipV4ToLong("192.168.255.255");
     }
+
     public static long ipV4ToLong(String ip) {
         String[] octets = ip.split("\\.");
         return (Long.parseLong(octets[0]) << 24) + (Integer.parseInt(octets[1]) << 16) +
