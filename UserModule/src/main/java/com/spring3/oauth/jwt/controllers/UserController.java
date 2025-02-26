@@ -66,7 +66,7 @@ public class UserController {
         }
         return new ResponseEntity<>(response, HttpStatusCode.valueOf(statusCode));
     }
-    @PostMapping(value = "/signup")
+    @PostMapping(value = "/add")
     public ResponseEntity<ApiResponse> saveUser(@RequestBody SignupRequest userRequest, HttpServletRequest httpServletRequest) {
         ApiResponse apiResponse = null;
         int statusCode = 0;
@@ -84,7 +84,7 @@ public class UserController {
     }
 
 
-    @PostMapping("/updateUserProfile")
+    @PostMapping("/edit")
     public  ResponseEntity<ApiResponse> updateAgentProfile(@RequestBody UpdateUserRequest uur) {
         int statusCode = 0;
         ApiResponse response = null;
